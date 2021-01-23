@@ -3,43 +3,57 @@
 
 #include <Windows.h>
 #include <tchar.h>
-
+#include <vector>
+#include <tuple>
 LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
+const INT WindowX = 540;
+const INT WindowY = 540;
 
+HWND hWnd;
+INT GetWind(HWND);
 int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInst, LPSTR lpCmdLine, int nCmdShow)
 {
-    TCHAR szClassName[] = TEXT("Мой класс");
-    HWND hMainWnd;
-    MSG msg;
-    WNDCLASSEX wc;
-    wc.cbSize = sizeof(wc);
-    wc.style = CS_HREDRAW | CS_VREDRAW;
-    wc.lpfnWndProc = WndProc;
-    wc.lpszMenuName = NULL;
-    wc.lpszClassName = szClassName;
-    wc.cbWndExtra = NULL;
-    wc.cbClsExtra = NULL;
-    wc.hIcon = LoadIcon(NULL, IDI_WINLOGO);
-    wc.hIconSm = LoadIcon(NULL, IDI_WINLOGO);
-    wc.hCursor = LoadCursor(NULL, IDC_ARROW);
-    wc.hbrBackground = static_cast<HBRUSH>(GetStockObject(LTGRAY_BRUSH));
-    wc.hInstance = hInst;
-    if (!RegisterClassEx(&wc))
-    {
-        MessageBox(NULL, TEXT("Не получилось зарегистрировать класс!"), TEXT("Ошибка"), MB_OK);
-        return NULL;
-    }
+	TCHAR szClassName[] = TEXT("Мой класс");
+	MSG msg;
+	WNDCLASSEX wc;
+	wc.cbSize = sizeof(wc);
+	wc.style = CS_HREDRAW | CS_VREDRAW;
+	wc.lpfnWndProc = WndProc;
+	wc.lpszMenuName = NULL;
+	wc.lpszClassName = szClassName;
+	wc.cbWndExtra = NULL;
+	wc.cbClsExtra = NULL;
+	wc.hIcon = LoadIcon(NULL, IDI_WINLOGO);
+	wc.hIconSm = LoadIcon(NULL, IDI_WINLOGO);
+	wc.hCursor = LoadCursor(NULL, IDC_ARROW);
+	wc.hbrBackground = static_cast<HBRUSH>(GetStockObject(LTGRAY_BRUSH));
+	wc.hInstance = hInst;
+	if (!RegisterClassEx(&wc)) {
 
-    hMainWnd = CreateWindow(szClassName, TEXT("Лабораторая работа 4"), WS_OVERLAPPEDWINDOW | WS_VSCROLL, CW_USEDEFAULT, NULL, 520, 520, static_cast<HWND>(NULL), NULL, static_cast<HINSTANCE>(hInst), NULL);
-    if (!hMainWnd)
-    {
-        MessageBox(NULL, TEXT("Не получилось создать окно!"), TEXT("Ошибка"), MB_OK);
-        return NULL;
-    }
+		MessageBox(NULL, TEXT("Не получилось зарегистрировать класс!"), TEXT("Ошибка"), MB_OK);
+		return NULL;
+	}
+	hWnd = CreateWindow(
+		szClassName,
+		TEXT("Лабораторная работа №5"),
+		WS_OVERLAPPED | WS_SYSMENU | WS_VSCROLL,
+		CW_USEDEFAULT,
+		NULL,
+		WindowX,
+		WindowY,
+		static_cast<HWND>(NULL),
+		NULL,
+		static_cast<HINSTANCE>(hInst),
+		NULL);
+	if (!hWnd)
+	{
+		MessageBox(NULL, TEXT("Не получилось создать окно!"), TEXT("Ошибка"), MB_OK);
+		return NULL;
+	}
 
-    ShowWindow(hMainWnd, nCmdShow);
-    UpdateWindow(hMainWnd);
-
+    ShowWindow(hWnd, nCmdShow);
+    UpdateWindow(hWnd);
+	
     while (GetMessage(&msg, NULL, NULL, NULL))
     {
         TranslateMessage(&msg);
@@ -48,100 +62,97 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInst, LPSTR lpCmdLine, int nC
     return msg.wParam;
    
 }
-const RECT m_rcSquares[9] = {
-{ 22, 22,150,150},
-{182, 22,320,150},
-{342, 22,460,150},
-{ 22,182,150,320},
-{182,182,320,320},
-{342,182,460,320},
-{ 22,342,150,460},
-{182,342,320,460},
-{342,342,460,460}
-};
-#define X 1
-#define O 2
+
+constexpr INT X =1;
+constexpr INT O =2;
 
 INT m_nNextChar = X;
 INT m_nGameGrid[9];
 
 
+void Draw(HWND hWnd, HDC hDC, INT nPos, RECT* m_rcSquares, LPARAM lParam);
 
 
-
-int GetRect(int x, int y)
+int GetRect(int x, int y,RECT* rect)
 {
 	for (int i = 0; i < 9; i++)
 	{
-		if (x > m_rcSquares[i].left && x<m_rcSquares[i].right &&
-			y>m_rcSquares[i].top && y < m_rcSquares[i].bottom)
+		if (x > rect[i].left && x<rect[i].right &&
+			y>rect[i].top && y < rect[i].bottom)
 			return i;
 	}
 	return -1;
 }
 
-void DrawX(HDC hDC, int nPos)
+void DrawX(HDC hDC, int nPos,RECT* rect)
 {
 	HPEN pen = CreatePen(PS_SOLID, 8, RGB(0, 255, 100));
 	SelectObject(hDC, pen);
-	RECT rect = m_rcSquares[nPos];
+	RECT rect1 = rect[nPos];
 
-	rect.top += 10;
-	rect.bottom -= 10;
-	rect.left += 10;
-	rect.right -= 10;
+	rect1.top += 30;
+	rect1.bottom -= 10;
+	rect1.left += 30;
+	rect1.right-=10;
 
-	MoveToEx(hDC, rect.left, rect.top, NULL);
-	LineTo(hDC, rect.right, rect.bottom);
+	MoveToEx(hDC, rect1.left, rect1.top, NULL);
+	LineTo(hDC, rect1.right, rect1.bottom);
 
-	MoveToEx(hDC, rect.left, rect.bottom, NULL);
-	LineTo(hDC, rect.right, rect.top);
+	MoveToEx(hDC, rect1.left, rect1.bottom, NULL);
+	LineTo(hDC, rect1.right, rect1.top);
 
 	DeleteObject(pen);
 }
 
-void DrawO(HDC hDC, int nPos)
+void DrawO(HDC hDC, int nPos,RECT* rect1)
 {
 	HPEN pen = CreatePen(PS_SOLID, 8, RGB(0, 255, 100));
 	SelectObject(hDC, pen);
-	RECT rect = m_rcSquares[nPos];
+	RECT rect = rect1[nPos];
 
-	rect.top += 10;
-	rect.bottom -= 10;
-	rect.left += 10;
-	rect.right -= 10;
+	rect.top += 20;
+	rect.bottom -= 20;
+	rect.left += 20;
+	rect.right -= 20;
 
 	Ellipse(hDC, rect.left, rect.top, rect.right, rect.bottom);
 	DeleteObject(pen);
 }
 
 
-void DrawBoard(HDC hDC)
+void DrawBoard(HWND hWnd,HDC hDC,RECT* rect1)
 {
+	INT Border = 50;
+	INT GridY = WindowY / 3;
+	INT GridX = WindowX / 3;
+	RECT rect;
+	GetClientRect(hWnd, &rect);
 	HPEN pen = CreatePen(PS_SOLID, 20, RGB(255, 100, 0));
 	SelectObject(hDC, pen);
 
-	MoveToEx(hDC, 171, 22, NULL);
-	LineTo(hDC, 171, 450);
+	MoveToEx(hDC, rect.left+Border, rect.top+GridY, NULL);
+	LineTo(hDC,rect.right-Border, rect.top+GridY);
 
-	MoveToEx(hDC, 331, 16, NULL);
-	LineTo(hDC, 331, 450);
+	MoveToEx(hDC, rect.left+Border, rect.top+2*GridY, NULL);
+	LineTo(hDC, rect.right-Border, rect.top + 2 * GridY);
+
+	MoveToEx(hDC, rect.left+GridX, rect.top+Border, NULL);
+	LineTo(hDC, rect.left + GridX, rect.bottom-Border);
+
+	MoveToEx(hDC, rect.left+2*GridX , rect.top+Border, NULL);
+	LineTo(hDC, rect.left + 2 * GridX, rect.bottom-Border);
 	
-	MoveToEx(hDC, 22, 171, NULL);
-	LineTo(hDC, 460, 171);
-
-	MoveToEx(hDC, 22,331, NULL);
-	LineTo(hDC, 460, 331);
+	
 
 	for (int i = 0; i < 9; i++)
 	{
 		if (m_nGameGrid[i] == X)
 		{
-			DrawX(hDC, i);
+			DrawX(hDC, i, rect1);
 		}
 		else if (m_nGameGrid[i] == O)
 		{
-			DrawO(hDC, i);
+			DrawO(hDC, i,rect1);
 		}
 	}
 	DeleteObject(pen);
@@ -150,29 +161,44 @@ void DrawBoard(HDC hDC)
 
 int Winner()
 {
-	static int Condition[8][3] =
-	{
-		0, 1, 2,
-		3, 4, 5,
-		6, 7, 8,
-		0, 3, 6,
-		1, 4, 7,
-		2, 5, 8,
-		0, 4, 8,
-		2, 4, 6
+	const static std::vector<std::tuple<uint8_t, uint8_t, uint8_t>> g_Condition{
+
+	 { 0, 1, 2 },
+
+	 { 3, 4, 5 },
+
+	 { 6, 7, 8 },
+
+	 { 0, 3, 6 },
+
+	 { 1, 4, 7 },
+
+	 { 2, 5, 8 },
+
+	 { 0, 4, 8 },
+
+	 { 2, 4, 6 }
+
 	};
 
-	for (int i = 0; i < 8; i++)
+	for (const auto& current : g_Condition)
 	{
-		if ((m_nGameGrid[Condition[i][0]] == X) &&
-			(m_nGameGrid[Condition[i][1]] == X) &&
-			(m_nGameGrid[Condition[i][2]] == X))
+		if (const auto [first, second, third] = current;
+			(m_nGameGrid[first] == X) &&
+			(m_nGameGrid[second] == X) &&
+			(m_nGameGrid[third] == X))
+		{
 			return X;
-		if ((m_nGameGrid[Condition[i][0]] == O) &&
-			(m_nGameGrid[Condition[i][1]] == O) &&
-			(m_nGameGrid[Condition[i][2]] == O))
+		}
+		else if ((m_nGameGrid[first] == O) &&
+			(m_nGameGrid[second] == O) &&
+			(m_nGameGrid[third] == O))
+		{
 			return O;
+		}
+
 	}
+
 	return 0;
 }
 
@@ -184,8 +210,9 @@ BOOL Draw()
 		{
 			return FALSE;
 		}
-		return TRUE;
+		
 	}
+	return TRUE;
 }
 
 
@@ -201,8 +228,6 @@ void ResetGame(HWND hWnd)
 void CheckForGameOver(HWND hWnd)
 {
 	int nWinner;
-
-	//if the grid contains three consecutive X's or O's, declare a winner and start a new game
 	if (nWinner = Winner())
 	{
 		MessageBox(hWnd, ((nWinner == X) ? _T("X wins!") : _T("O wins!")),
@@ -219,36 +244,43 @@ void CheckForGameOver(HWND hWnd)
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-	HDC hdc;
+	static HDC hDC;
 	PAINTSTRUCT ps;
-	int nPos;
-
+	static int nPos;
+	INT GridY = WindowY / 3;
+	INT GridX = WindowX / 3;
+	RECT rect;
+	GetClientRect(hWnd, &rect);
+	RECT m_rcSquares[9] =
+	{
+	{ rect.left,rect.top,rect.right / 3,rect.bottom/3},
+	{ rect.left + GridX,rect.top,rect.right / 3+GridX,rect.bottom/3  },
+	{ rect.left + 2 * GridX,rect.top,rect.right,rect.bottom / 3 },
+	{ rect.left,rect.top + GridY,rect.right / 3 ,rect.bottom / 3 +  GridY },
+	{ rect.left + GridX,rect.top + GridY,rect.right / 3+GridX,rect.bottom / 3 +GridY },
+	{ rect.left + 2* GridX,rect.top + GridY,rect.right ,rect.bottom / 3 + GridY },
+	{ rect.left,rect.top + 2 * GridY,rect.right / 3,rect.bottom },
+	{ rect.left+GridX,rect.top + 2 * GridY,rect.right / 3 +  GridX,rect.bottom },
+	{ rect.left + 2 * GridX,rect.top + 2 * GridY,rect.right,rect.bottom }
+	};
 	switch (uMsg)
 	{
+	case WM_CREATE:
+		ResetGame(hWnd);
+	
+		break;
 	case WM_LBUTTONDOWN:
 		if (m_nNextChar != X)
+		{
 			return 0;
-		nPos = GetRect(LOWORD(lParam), HIWORD(lParam));
-		if ((nPos == -1) || (m_nGameGrid[nPos] != 0))
-			return 0;
-		m_nGameGrid[nPos] = X;
-		m_nNextChar = O;
-		hdc = GetDC(hWnd);
-		DrawX(hdc, nPos);
-		CheckForGameOver(hWnd);
+		}
+		Draw(hWnd, hDC, nPos, m_rcSquares, lParam);
 		return 0;
 
 	case WM_RBUTTONDOWN:
 		if (m_nNextChar != O)
 			return 0;
-		nPos = GetRect(LOWORD(lParam), HIWORD(lParam));
-		if ((nPos == -1) || (m_nGameGrid[nPos] != 0))
-			return 0;
-		m_nGameGrid[nPos] = O;
-		m_nNextChar = X;
-		hdc = GetDC(hWnd);
-		DrawO(hdc, nPos);
-		CheckForGameOver(hWnd);
+		Draw(hWnd, hDC, nPos, m_rcSquares, lParam);
 		return 0;
 
 	case WM_MBUTTONDOWN:
@@ -256,12 +288,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		return 0;
 
 	case WM_PAINT:
-		hdc = BeginPaint(hWnd, &ps);
-
-		//GetClientRect (hwnd, &rect);
-		SetBkMode(hdc, TRANSPARENT);
-		DrawBoard(hdc);
-
+		hDC = BeginPaint(hWnd, &ps);
+		SetBkMode(hDC, TRANSPARENT);
+		DrawBoard(hWnd,hDC, m_rcSquares);
 		EndPaint(hWnd, &ps);
 		return 0;
 
@@ -271,4 +300,33 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	}
 
 	return DefWindowProc(hWnd, uMsg, wParam, lParam);
+}
+
+void Draw(HWND hWnd, HDC hDC,INT nPos, RECT* m_rcSquares,LPARAM lParam)
+{
+
+	nPos = GetRect(LOWORD(lParam), HIWORD(lParam), m_rcSquares);
+	if ((nPos == -1) || (m_nGameGrid[nPos] != 0))
+	{
+		return;
+	}
+	if (m_nNextChar == X)
+	{
+		m_nGameGrid[nPos] = X;
+		m_nNextChar = O;
+		hDC = GetDC(hWnd);
+		DrawX(hDC, nPos, m_rcSquares);
+		CheckForGameOver(hWnd);
+	}
+	else if (m_nNextChar == O)
+	{
+		nPos = GetRect(LOWORD(lParam), HIWORD(lParam), m_rcSquares);
+		if ((nPos == -1) || (m_nGameGrid[nPos] != 0))
+			return;
+		m_nGameGrid[nPos] = O;
+		m_nNextChar = X;
+		hDC = GetDC(hWnd);
+		DrawO(hDC, nPos, m_rcSquares);
+		CheckForGameOver(hWnd);
+	}
 }
